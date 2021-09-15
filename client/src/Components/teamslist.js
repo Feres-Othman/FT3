@@ -89,7 +89,8 @@ export default function Teams() {
                    <div style={{ width: "10%" }} >rang</div>
 
                     <div style={{ width: "30%" }} >Nom</div>
-                    <div style={{ width: "30%" }} >Banned</div>
+                    <div style={{ width: "30%" }} >équipe bannie
+</div>
 
 
                 </div>
