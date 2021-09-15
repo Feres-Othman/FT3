@@ -2,10 +2,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import React, { useState, useEffect, useMemo } from 'react'
 import NvBar from './Molecules/NvBar';
-import Ajouterjouer from "./Components/Ajouterjouer"
-import Updatejouer from "./Components/updatejouer"
-import Ajouterequipe from "./Components/ajouteruneequipe"
-import Updateequipe from "./Components/updateE"
+import AddPlayer from "./Components/AddPlayer"
+import UpdatePlayer from "./Components/UpdatePlayer"
+import AddTeam from "./Components/AddTeam"
+import UpdateTeam from "./Components/UpdateTeam"
 
 import { UserContext } from './UserContext';
 import { RContext } from './RContext';
@@ -277,11 +277,11 @@ function App() {
                     <Route path="/teams" >
                       <Teams />
                     </Route>
-                      <Route path="/updatejouer/:_id" >
-                     <Updatejouer />
+                      <Route path="/updateplayer/:_id" >
+                     <UpdatePlayer />
                     </Route>
-                    <Route path="/Updateequipe/:_id" >
-                     <Updateequipe />
+                    <Route path="/updateteam/:_id" >
+                     <UpdateTeam />
                     </Route>
 
 
@@ -309,11 +309,11 @@ function App() {
                     <Route path="/players" >
                       <Players />
                     </Route>
-                    <Route path="/Ajouterjouer" >
-                      <Ajouterjouer />
+                    <Route path="/addplayer" >
+                      <AddPlayer />
                     </Route>
-                    <Route path="/equipejouer" >
-                      <Ajouterequipe />
+                    <Route path="/addteam" >
+                      <AddTeam />
                     </Route>
 
                     <Route path="/match/add" >

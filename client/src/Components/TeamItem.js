@@ -10,7 +10,7 @@ import { useDispatch } from 'react-redux';
 import {deleteJouer} from "./actions/ajouterunjouer"
 import {deleteTeam} from "./actions/ajouterunjouer"
 
-import {Updatejouer} from "./updatejouer"
+import {Updatejouer} from "./UpdatePlayer"
 
 
 export default function TeamItem({ _id,name, rang,createdAt, isByTeam,isBanned, isByFilter, filteredScore = 500  ,item }) {
@@ -54,7 +54,7 @@ export default function TeamItem({ _id,name, rang,createdAt, isByTeam,isBanned, 
     
       const handleUpdate = (e) => {
         e.preventDefault();
-                history.push(`/updateequipe/${_id}`);
+                history.push(`/updateteam/${_id}`);
      }
      useEffect(() => {
         Banned();

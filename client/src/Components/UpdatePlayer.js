@@ -10,19 +10,24 @@ import PlayerItem from './PlayerItem';
 import { Row,Col } from 'react-bootstrap';
 import TeamPlayers from './TeamPlayers';
 import { Dropdown, FormControl } from 'react-bootstrap'
-import {ajout} from "./actions/ajouterunjouer"
+import {update} from "./actions/AddPlayer"
+
 import axios from 'axios'
 import { reactLocalStorage as Ls } from 'reactjs-localstorage';
 import DrpDown from '../Molecules/DrpDown';
 import Btn from '../Molecules/Btn';
 import Input from '../Molecules/Input';
 
+import { useParams } from 'react-router-dom';
 
 import { useHistory } from 'react-router-dom';
-const initialState = { Nom: '', Prenom: '', Nationalité: '', UniqueNumber: '', Numero: '',Score: '',Category1: '',Gender: '',Date: '',Team: '' };
 
-const Ajoutjouer=() => {
+const UpdatePlayer=() => {
+    let { _id } = useParams();
+console.log(_id)
+   
 
+ 
     const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
 
         <button ref={ref}
@@ -69,20 +74,19 @@ const Ajoutjouer=() => {
     );
 
 
+   const [Player, setPlayer] = useState({})
 
-    
+
     const { design } = useContext(DesignContext);
     const { isMedium, isSmall, isLarge, notifier } = useContext(RContext)
     const dispatch = useDispatch();
 
-    const [form, setForm] = useState(initialState);
 
     const history = useHistory();
     const [categories, setCategories] = useState([])
     const [category, setCategory] = useState({})
     const [teams, setTeams] = useState([])
     const [team, setTeam] = useState([])
-
     const genders = [{
         _id: "F",
         name: "Femme"
@@ -92,7 +96,34 @@ const Ajoutjouer=() => {
         name: "Homme"
     }]
     const [gender, setGender] = useState({})
+ const getPlayer = async () => {
 
+        var session = Ls.getObject('session', { 'isLoggedIn': false });
+        let config = {
+            headers: {
+                "auth-token": session.token,
+            }
+        }
+
+        axios.post(`/api/player/read/one/${_id}`, {}, config)
+            .then((response) => {
+                let res = response.data;
+                if (res.success) {
+                    console.log(res)
+
+
+                    setPlayer(res.player);
+                } else {
+                    return res.json({
+                        success: false
+                    })
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+
+    }
     const getCategories = async () => {
 
         var session = Ls.getObject('session', { 'isLoggedIn': false });
@@ -157,25 +188,17 @@ const Ajoutjouer=() => {
     useEffect(() => {
         getTeams();
     }, [])
+      useEffect(() => {
+        getPlayer();
+    }, [])
 
-  
-      const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-      const handleChange1 = (e) => {  
-          
-            setForm({ ...form, [e.target.name]: e.target.value.replace(/[^A-Za-z]/ig, '')});
-        }
-       
-      
-
-       const blockInvalidChar = e => ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault();
-       const onlyletter = e =>  (e.charCode >= 65 && e.charCode <= 90) || (e.charCode >= 97 && e.charCode <= 122);
-       const ajout = (formData, router) => async (dispatch) => {
+     const update = (formData, router,_id) => async (dispatch) => {
 
         try {
-          const { data } = await api.Ajout(formData);
+          const { data } = await api.Update(formData,_id);
       
           dispatch({ type: AJOUT, data });
-          if(data.success==false){ notifier.alert('joueur avec ce Numéro Unique existe déjà')
+          if(data.success==false){ notifier.alert('joueur avec ce Numéro Unique existe déjà ')
           }else if(data.success==true)
           { notifier.success('Succès')
           }
@@ -186,63 +209,57 @@ const Ajoutjouer=() => {
           console.log(error);
         }
       };
-      const handleSubmit = (e) => {
-        form.Category1=category
+      const initialState = { Nom:"", Prenom: '', Nationalité: '', UniqueNumber: '', Numero: '',Score: '',Category1: '',Gender: '',Date: '',Team: '' };
+    const [form, setForm] = useState(initialState);
+
+      const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+      const handleChange1 = (e) => setForm({ ...form, [e.target.name]: e.target.value.replace(/[^A-Za-z]/ig, '') });
+      
+const handleUpdate = (e) => {
+    e.preventDefault();
+    form.Category1=category
         form.Gender=gender
         form.Team=team
-        
-           
+        if ( form.Nom == '') {
+            notifier.alert("Le champ Nom ne peut pas être vide et ne peut contenir que des lettres");
+            return;
+        } if ( form.Prenom == '' ) {
+            notifier.alert("Le champ Prenom ne peut pas être vide et ne peut contenir que des lettres");
+            return;
+        } 
+        if (gender._id == undefined) {
+            notifier.alert("veuillez sélectionner un sexe");
+            return;
+        }
+        if (category.name == undefined) {
+            notifier.alert("Veuillez sélectionner une catégorie");
+            return;
+        }   if (team.name == undefined) {
+            notifier.alert("veuillez sélectionner une équipe");
+            return;
+        }  if ( form.Date == '' ) {
+            notifier.alert("Le champ de date ne peut pas être vide");
+            return;
+        }
+        if ( form.Score == '' ) {
+            notifier.alert("Le champ Score ne peut pas être vide et ne peut contenir que des chiffres");
+            return;
+        }if ( form.UniqueNumber == '' ) {
+            notifier.alert("Le champ NuméroUnique ne peut pas être vide ");
+            return;
+        }
+        if ( form.Nationalité == '' ) {
+            notifier.alert("le champ nationalité ne peut pas être vide et ne peut contenir que des lettres");
+            return;
+        }if ( form.Numero == '' ) {
+            notifier.alert("Le champ Numero ne peut pas être vide et ne peut contenir que des chiffre");
+            return;
+        }
+         dispatch(update(form, history,_id));
+         history.push(`/players/`);
 
-            if ( form.Nom == '') {
-                notifier.alert("Le champ Nom ne peut pas être vide et ne peut contenir que des lettres");
-                return;
-            } if ( form.Prenom == '' ) {
-                notifier.alert("Le champ Prenom ne peut pas être vide et ne peut contenir que des lettres");
-                return;
-            } 
-            if (gender._id == undefined) {
-                notifier.alert("veuillez sélectionner un sexe");
-                return;
-            }
-            if (category.name == undefined) {
-                notifier.alert("Veuillez sélectionner une catégorie");
-                return;
-            }   if (team.name == undefined) {
-                notifier.alert("veuillez sélectionner une équipe");
-                return;
-            }  if ( form.Date == '' ) {
-                notifier.alert("Le champ de date ne peut pas être vide");
-                return;
-            }
-            if ( form.Score == '' ) {
-                notifier.alert("Le champ Score ne peut pas être vide et ne peut contenir que des chiffres");
-                return;
-            }if ( form.UniqueNumber == '' ) {
-                notifier.alert("Le champ NuméroUnique ne peut pas être vide ");
-                return;
-            }
-            if ( form.Nationalité == '' ) {
-                notifier.alert("le champ nationalité ne peut pas être vide et ne peut contenir que des lettres");
-                return;
-            }if ( form.Numero == '' ) {
-                notifier.alert("Le champ Numero ne peut pas être vide et ne peut contenir que des chiffre");
-                return;
-            }
-       
-     
+}
 
-        console.log(form.Category1)
-        console.log(category)
-        console.log(form)
-
-
-       
-        e.preventDefault();
-        dispatch(ajout(form, history));
-
- 
-       };
-  
 
     return (
         <form  >
@@ -254,29 +271,28 @@ const Ajoutjouer=() => {
             alignItems: "center",
             width: "90%",
             height: "87vh",
-            //paddingTop: "20vh",
+        //paddingTop: "20vh",
             // backgroundColor: design.backgroundColor,
             marginLeft: "5%",
             textAlign: 'center',
             // overflowY: "scroll"
         }} >
-                    <h1 style={{ textAlign: 'center', margin: 20 }}>Ajoute un jouer</h1>
+                    <h1 style={{ textAlign: 'center', margin: 20 }}>Mise a jour d'un jouer</h1>
 
          <div > 
          <Row>
 
-         <Col><Input  handleChange={handleChange1}    name ="Nom" placeholder="Nom" width="200px"  maxLength="9"
- ></Input></Col>
-         <Col><Input  handleChange={handleChange1} name ="Prenom" placeholder="Prenom"  width="200px"></Input></Col>
+         <Col><Input  handleChange={handleChange1} name ="Nom" placeholder={Player.firstName}w width="200px"  ></Input></Col>
+         <Col><Input  handleChange={handleChange1} name ="Prenom" placeholder={Player.lastName}width="200px"></Input></Col>
 </Row>
 </div>
 <br />
 <div > 
 <Row>
 
-<Col><Input  handleChange={handleChange1} name ="Nationalité" placeholder="Nationalité" width="200px" ></Input></Col>
+<Col><Input  handleChange={handleChange1} name ="Nationalité" placeholder={Player.nat} width="200px" ></Input></Col>
 
-<Col><Input  handleChange={handleChange}  name ="UniqueNumber" placeholder="Numéro unique" width="200px" ></Input></Col>
+<Col><Input  handleChange={handleChange}  name ="UniqueNumber" placeholder={Player.UniqueNumber} width="200px" ></Input></Col>
 </Row>
 
 </div>           
@@ -288,12 +304,12 @@ const Ajoutjouer=() => {
 <br />
 <div > 
     <Row>
-<Col><Input  handleChange={handleChange}  onKeyPress={blockInvalidChar} type="number" name ="Numero" placeholder="Numero" width="200px" ></Input></Col>
+<Col><Input  handleChange={handleChange} type="number" name ="Numero" placeholder={Player.number} width="200px" ></Input></Col>
 
-<Col><Input  handleChange={handleChange} type="number"  onKeyPress={blockInvalidChar}  name ="Score" placeholder="Score" width="200px" ></Input></Col>
+<Col><Input  handleChange={handleChange} type="number"   name ="Score" placeholder={Player.score} width="200px" ></Input></Col>
 </Row>
 </div>            <br />
-<DrpDown handleChange={handleChange}  value={category} name ="Category" dataset={categories} setData={setCategory} data={category} > Selectionner une categorie </DrpDown>
+<DrpDown handleChange={handleChange}  value={category} name ="Category"   dataset={categories} setData={setCategory} data={category} > Selectionner une categorie </DrpDown>
             <br />
 <div > 
 <h4 style={{textAlign: 'left' }}>Date de naissance: </h4>
@@ -326,9 +342,9 @@ const Ajoutjouer=() => {
             <br />
        
             <br />
-            <Btn onClick={handleSubmit} style={{ width: 400 }}>Valider</Btn>
+            <Btn onClick={handleUpdate} style={{ width: 400 }}>Valider</Btn>
 
         </div ></form>
     )
 };
-export default Ajoutjouer;
+export default UpdatePlayer;

@@ -58,7 +58,7 @@ export default function Teams() {
             <h1 style={{ textAlign: 'center', margin: 20 }} >Les Équipes </h1>
             <Btn onClick={() => {
 
-                history.push(`/equipejouer/`);
+                history.push(`/addteam/`);
             }}style={{ float:'right' , 
               display: "flex",
              justifyContent: "start",
