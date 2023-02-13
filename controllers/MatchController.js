@@ -339,7 +339,14 @@ const createMatch = async (req, res, next) => {
             looser = playerA;
         }
 
-        let difference = contests[0].player1Score > contests[0].player2Score ? playerA.scores[scoreIndex].score - playerX.scores[scoreIndex].score : playerX.scores[scoreIndex].score - playerA.scores[scoreIndex].score;
+        let difference = 0;
+
+        try {
+            difference = contests[0].player1Score > contests[0].player2Score ? playerA.scores[scoreIndex].score - playerX.scores[scoreIndex].score : playerX.scores[scoreIndex].score - playerA.scores[scoreIndex].score;
+        } catch (e) {
+            console.log(e)
+            difference = contests[0].player1Score > contests[0].player2Score ? playerA.scores2[scoreIndex].score - playerX.scores2[scoreIndex].score : playerX.scores2[scoreIndex].score - playerA.scores2[scoreIndex].score;
+        }
 
         switch (true) {
             //victoire anormale
@@ -461,9 +468,15 @@ const createMatch = async (req, res, next) => {
 
         winnerPoints = Math.round(winnerPoints);
         looserPoints = Math.round(looserPoints);
-
-        let winnerPreviousPoints = winner.scores[scoreIndex].score;
-        let looserPreviousPoints = looser.scores[scoreIndex].score;
+        let winnerPreviousPoints = 0;
+        let looserPreviousPoints = 0;
+        try {
+            winnerPreviousPoints = winner.scores[scoreIndex].score;
+            looserPreviousPoints = looser.scores[scoreIndex].score;
+        } catch (error) {
+            winnerPreviousPoints = winner.scores2[scoreIndex].score;
+            looserPreviousPoints = looser.scores2[scoreIndex].score;
+        }
 
 
         let check = await Match.findOne({
