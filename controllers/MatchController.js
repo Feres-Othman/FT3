@@ -519,14 +519,24 @@ const createMatch = async (req, res, next) => {
             contest
         });
 
-        winner.scores[scoreIndex].score += winnerPoints;
-        looser.scores[scoreIndex].score += looserPoints;
+        try {
+            winner.scores[scoreIndex].score += winnerPoints;
+            looser.scores[scoreIndex].score += looserPoints;
+        } catch (error) {
+            winner.scores2[scoreIndex].score += winnerPoints;
+            looser.scores2[scoreIndex].score += looserPoints;
+        }
 
         newMatch.save()
             .then(async () => {
 
-                await Player.findOneAndUpdate({ _id: winner._id }, { $push: { history2: newMatch._id }, scores2: winner.scores }, {}).exec();
-                await Player.findOneAndUpdate({ _id: looser._id }, { $push: { history2: newMatch._id }, scores2: looser.scores }, {}).exec();
+                if (winner.scores2) {
+                    await Player.findOneAndUpdate({ _id: winner._id }, { $push: { history2: newMatch._id }, scores2: winner.scores2 }, {}).exec();
+                    await Player.findOneAndUpdate({ _id: looser._id }, { $push: { history2: newMatch._id }, scores2: looser.scores2 }, {}).exec();
+                } else {
+                    await Player.findOneAndUpdate({ _id: winner._id }, { $push: { history2: newMatch._id }, scores2: winner.scores }, {}).exec();
+                    await Player.findOneAndUpdate({ _id: looser._id }, { $push: { history2: newMatch._id }, scores2: looser.scores }, {}).exec();
+                }
 
                 res.json({
                     success: true,
