@@ -15444,7 +15444,7 @@ const createPlayer = async (req, res, next) => {
     const day = req.body.Date.slice(8, 10);
     const month = req.body.Date.slice(5, 7);
     const year = req.body.Date.slice(0, 4);
-    const category2 = req.body.Category1._id;
+    const category3 = req.body.Category1._id;
     const score = req.body.Score;
     const team = req.body.Team._id;
     const sex = req.body.Gender._id;
@@ -15452,19 +15452,19 @@ const createPlayer = async (req, res, next) => {
 
     const nat = req.body.Nationalité;
 
-    let scores2 = [];
-    let indivBonuses2 = [];
+    let scores3 = [];
+    let indivBonuses3 = [];
     const categories = await Category.find({}).sort({ __v: 1 })
 
     for (i = 0; i < categories.length; i++) {
       const element = categories[i];
 
-      scores2.push({
+      scores3.push({
         category: element._id.toString(),
         score: 500
       })
 
-      indivBonuses2.push({
+      indivBonuses3.push({
         category: element._id.toString(),
         bonus: 0
       })
@@ -15480,14 +15480,14 @@ const createPlayer = async (req, res, next) => {
         day,
         month,
         year,
-        category2,
+        category3,
         score,
         team,
         indGenre,
         sex,
         nat,
-        scores2,
-        indivBonuses2
+        scores3,
+        indivBonuses3
         // UniqueNumber
       });
 
@@ -15526,30 +15526,30 @@ const readPlayer = async (req, res, next) => {
 
 
     const player = await Player.findOne({ _id: req.params._id })
-      .populate(`category${req.body.season == 2 ? req.body.season : ""}`)
+      .populate(`category${req.body.season >= 2 ? req.body.season : ""}`)
       .populate({
         path: "team",
         populate: {
           path: 'players_v2',
           populate: {
-            path: `category${req.body.season == 2 ? req.body.season : ""}`
+            path: `category${req.body.season >= 2 ? req.body.season : ""}`
           }
         }
       })
       .populate({
-        path: `history${req.body.season == 2 ? req.body.season : ""}`,
+        path: `history${req.body.season >= 2 ? req.body.season : ""}`,
         populate: {
           path: 'winner'
         }
       })
       .populate({
-        path: `history${req.body.season == 2 ? req.body.season : ""}`,
+        path: `history${req.body.season >= 2 ? req.body.season : ""}`,
         populate: {
           path: 'looser'
         }
       })
       .populate({
-        path: `history${req.body.season == 2 ? req.body.season : ""}`,
+        path: `history${req.body.season >= 2 ? req.body.season : ""}`,
         populate: {
           path: 'category'
         }
@@ -15563,17 +15563,17 @@ const readPlayer = async (req, res, next) => {
     })
     else if (player) {
 
-      if (req.body.season == 2) {
+      if (req.body.season >= 2) {
 
         return res.json({
           success: true,
           player: {
             ...JSON.parse(JSON.stringify(player)),
-            category: player.category2,
-            scores: player.scores2,
-            isValid: player.isValid2,
-            history: player.history2,
-            indivBonuses: player.indivBonuses2,
+            category: player[`category${req.body.season}`],
+            scores: player[`scores${req.body.season}`],
+            isValid: player[`isValid${req.body.season}`],
+            history: player[`history${req.body.season}`],
+            indivBonuses: player[`indivBonuses${req.body.season}`],
           }
         })
 
@@ -15655,7 +15655,7 @@ const resetPlayersScores = async (req, res) => {
 
 const nextSeason = async (req, res) => {
   return res.json({
-    message: 'update-success',
+    message: 'update-desactivated',
     success: true
   });
   try {
@@ -15680,12 +15680,12 @@ const nextSeason = async (req, res) => {
 
     }
 
-    Player.updateMany({ "year": { $gte: 2014 } }, {
-      scores2: scores,
-      indivBonuses2: indivBonuses,
-      history2: [],
-      isValid2: false,
-      category2: categories[0]._id
+    Player.updateMany({ "year": { $gte: 2015 } }, {
+      scores3: scores,
+      indivBonuses3: indivBonuses,
+      history3: [],
+      isValid3: false,
+      category3: categories[0]._id
     }, function (err, doc) {
       if (err) return res.json({
         message: 'mongoose-error',
@@ -15755,8 +15755,8 @@ const readPlayers = async (req, res, next) => {
         finalCategories.push(element._id);
 
       }
-      if (req.body.season == 2) {
-        filter.category2 = { $in: finalCategories }
+      if (req.body.season >= 2) {
+        filter[`category${req.body.season}`] = { $in: finalCategories }
       } else {
         filter.category = { $in: finalCategories }
       }
@@ -15782,8 +15782,8 @@ const readPlayers = async (req, res, next) => {
 
       }
 
-      if (req.body.season == 2) {
-        filter.category2 = { $in: finalCategories }
+      if (req.body.season >= 2) {
+        filter[`category${req.body.season}`] = { $in: finalCategories }
       } else {
         filter.category = { $in: finalCategories }
       }
@@ -15795,7 +15795,7 @@ const readPlayers = async (req, res, next) => {
 
     const players = await Player.find(filter)
       .sort({ score: -1 })
-      .populate(`category${req.body.season == 2 ? req.body.season : ""}`)
+      .populate(`category${req.body.season >= 2 ? req.body.season : ""}`)
       .populate("team")
       // .populate("history")
       .exec();
@@ -15807,16 +15807,16 @@ const readPlayers = async (req, res, next) => {
       message: "Players-not-found"
     })
 
-    if (req.body.season == 2) {
+    if (req.body.season >= 2) {
       return res.json({
         success: true, players: JSON.parse(JSON.stringify(players)).map(pl => {
           return {
             ...pl,
-            category: pl.category2,
-            scores: pl.scores2,
-            isValid: pl.isValid2,
-            history: pl.history2,
-            indivBonuses: pl.indivBonuses2,
+            category: pl[`category${req.body.season}`],
+            scores: pl[`scores${req.body.season}`],
+            isValid: pl[`isValid${req.body.season}`],
+            history: pl[`history${req.body.season}`],
+            indivBonuses: pl[`indivBonuses${req.body.season}`],
           }
         }), chosenCategory
       });
@@ -15868,18 +15868,20 @@ const readAllPlayers = async (req, res, next) => {
 
     const players = []
 
-    if (req.body.season == 2) {
-      players = await Player.find({ category2: { $in: finalCategories } })
-        .sort({ score: -1 })
-        .populate("team")
-        .exec();
+    let Catfilter = {}
+
+    if (req.body.season == 3) {
+      Catfilter = { category3: { $in: finalCategories } }
+    } else if (req.body.season == 2) {
+      Catfilter = { category2: { $in: finalCategories } }
     } else {
-      players = await Player.find({ category: { $in: finalCategories } })
-        .sort({ score: -1 })
-        .populate("team")
-        .exec();
+      Catfilter = { category: { $in: finalCategories } }
     }
 
+    players = await Player.find(Catfilter)
+      .sort({ score: -1 })
+      .populate("team")
+      .exec();
 
     console.log(players)
 
@@ -15889,18 +15891,18 @@ const readAllPlayers = async (req, res, next) => {
     })
 
 
-    if (req.body.season == 2) {
+    if (req.body.season >= 2) {
       return res.json({
         success: true, players: JSON.parse(JSON.stringify(players)).map(pl => {
           return {
             ...pl,
-            category: pl.category2,
-            scores: pl.scores2,
-            isValid: pl.isValid2,
-            history: pl.history2,
-            indivBonuses: pl.indivBonuses2,
+            category: pl[`category${req.body.season}`],
+            scores: pl[`scores${req.body.season}`],
+            isValid: pl[`isValid${req.body.season}`],
+            history: pl[`history${req.body.season}`],
+            indivBonuses: pl[`indivBonuses${req.body.season}`],
           }
-        })
+        }), chosenCategory
       });
     } else {
       return res.json({
@@ -15962,8 +15964,8 @@ const updatePlayer = async (req, res) => {
   const team = req.body.team._id;
   const sex = req.body.sex._id;
 
-  const category2 = req.body.Category1._id;
-  const isValid2 = req.body.isValid._id == 0;
+  const category3 = req.body.Category1._id;
+  const isValid3 = req.body.isValid._id == 0;
 
 
 
@@ -15989,13 +15991,13 @@ const updatePlayer = async (req, res) => {
         day,
         month,
         year,
-        category2,
+        category3,
         score,
         team,
         indGenre,
         sex,
         nat,
-        isValid2
+        isValid3
       };
 
       if (team != player2.team) {
@@ -16032,13 +16034,13 @@ const updatePlayer = async (req, res) => {
           day,
           month,
           year,
-          category2,
+          category3,
           score,
           team,
           indGenre,
           sex,
           nat,
-          isValid2
+          isValid3
         };
 
         if (team != player2.team) {
@@ -16069,7 +16071,7 @@ const updatePlayer = async (req, res) => {
 const addBonuses = async (req, res, next) => {
 
 
-  const category2 = req.body.category;
+  const category3 = req.body.category;
 
   const players1 = req.body.players1;
   const players2 = req.body.players2;
@@ -16084,74 +16086,74 @@ const addBonuses = async (req, res, next) => {
 
   console.log({ coef })
 
-  let scoreIndex = category.__v - 1;
+  let scoreIndex = category3.__v - 1;
 
-  await Player.updateMany({ _id: { $in: [...players1] }, "indivBonuses2.category": category2._id.toString() }, {
+  await Player.updateMany({ _id: { $in: [...players1] }, "indivBonuses3.category": category3._id.toString() }, {
     $inc: {
-      "indivBonuses2.$.bonus": 12 * coef
+      "indivBonuses3.$.bonus": 12 * coef
     }
   }, {}, (err, res) => {
     console.log(err)
     console.log(res)
   })
 
-  await Player.updateMany({ _id: { $in: [...players2] }, "indivBonuses2.category": category2._id.toString() }, {
+  await Player.updateMany({ _id: { $in: [...players2] }, "indivBonuses3.category": category3._id.toString() }, {
     $inc: {
-      "indivBonuses2.$.bonus": 10 * coef
+      "indivBonuses3.$.bonus": 10 * coef
     }
   }, {}, (err, res) => {
     console.log(err)
     console.log(res)
   })
 
-  await Player.updateMany({ _id: { $in: [...players3] }, "indivBonuses2.category": category2._id.toString() }, {
+  await Player.updateMany({ _id: { $in: [...players3] }, "indivBonuses3.category": category3._id.toString() }, {
     $inc: {
-      "indivBonuses2.$.bonus": 8 * coef
+      "indivBonuses3.$.bonus": 8 * coef
     }
   }, {}, (err, res) => {
     console.log(err)
     console.log(res)
   })
 
-  await Player.updateMany({ _id: { $in: [...players4] }, "indivBonuses2.category": category2._id.toString() }, {
+  await Player.updateMany({ _id: { $in: [...players4] }, "indivBonuses3.category": category3._id.toString() }, {
     $inc: {
-      "indivBonuses2.$.bonus": 6 * coef
+      "indivBonuses3.$.bonus": 6 * coef
     }
   }, {}, (err, res) => {
     console.log(err)
     console.log(res)
   })
 
-  await Player.updateMany({ _id: { $in: [...players5] }, "indivBonuses2.category": category2._id.toString() }, {
+  await Player.updateMany({ _id: { $in: [...players5] }, "indivBonuses3.category": category3._id.toString() }, {
     $inc: {
-      "indivBonuses2.$.bonus": 4 * coef
+      "indivBonuses3.$.bonus": 4 * coef
     }
   }, {}, (err, res) => {
     console.log(err)
     console.log(res)
   })
 
-  await Player.updateMany({ _id: { $in: [...players6] }, "indivBonuses2.category": category2._id.toString() }, {
+  await Player.updateMany({ _id: { $in: [...players6] }, "indivBonuses3.category": category3._id.toString() }, {
     $inc: {
-      "indivBonuses2.$.bonus": 2 * coef
+      "indivBonuses3.$.bonus": 2 * coef
     }
   }, {}, (err, res) => {
     console.log(err)
     console.log(res)
   })
 
-  await Player.updateMany({ _id: { $in: [...players7] }, "indivBonuses2.category": category2._id.toString() }, {
+  await Player.updateMany({ _id: { $in: [...players7] }, "indivBonuses3.category": category3._id.toString() }, {
     $inc: {
-      "indivBonuses2.$.bonus": 1 * coef
+      "indivBonuses3.$.bonus": 1 * coef
     }
   }, {}, (err, res) => {
     console.log(err)
     console.log(res)
   })
 
-  await Player.updateMany({ _id: { $in: [...players8] }, "indivBonuses2.category": category2._id.toString() }, {
+  await Player.updateMany({ _id: { $in: [...players8] }, "indivBonuses3.category": category3._id.toString() }, {
     $inc: {
-      "indivBonuses2.$.bonus": -2.5 * coef
+      "indivBonuses3.$.bonus": -2.5 * coef
     }
   }, {}, (err, res) => {
     console.log(err)

@@ -308,8 +308,8 @@ const createMatch = async (req, res, next) => {
             await newMatch.save();
 
             if (newMatch && !contest.isDouble) {
-                await Player.findOneAndUpdate({ _id: winner._id }, { $push: { history2: newMatch._id }, scores2: winner.scores }, {}).exec();
-                await Player.findOneAndUpdate({ _id: looser._id }, { $push: { history2: newMatch._id }, scores2: looser.scores }, {}).exec();
+                await Player.findOneAndUpdate({ _id: winner._id }, { $push: { history3: newMatch._id }, scores3: winner.scores2 }, {}).exec();
+                await Player.findOneAndUpdate({ _id: looser._id }, { $push: { history3: newMatch._id }, scores3: looser.scores2 }, {}).exec();
             }
 
         }
@@ -530,12 +530,12 @@ const createMatch = async (req, res, next) => {
         newMatch.save()
             .then(async () => {
 
-                if (winner.scores2) {
-                    await Player.findOneAndUpdate({ _id: winner._id }, { $push: { history2: newMatch._id }, scores2: winner.scores2 }, {}).exec();
-                    await Player.findOneAndUpdate({ _id: looser._id }, { $push: { history2: newMatch._id }, scores2: looser.scores2 }, {}).exec();
+                if (winner.scores3) {
+                    await Player.findOneAndUpdate({ _id: winner._id }, { $push: { history3: newMatch._id }, scores3: winner.scores3 }, {}).exec();
+                    await Player.findOneAndUpdate({ _id: looser._id }, { $push: { history3: newMatch._id }, scores3: looser.scores3 }, {}).exec();
                 } else {
-                    await Player.findOneAndUpdate({ _id: winner._id }, { $push: { history2: newMatch._id }, scores2: winner.scores }, {}).exec();
-                    await Player.findOneAndUpdate({ _id: looser._id }, { $push: { history2: newMatch._id }, scores2: looser.scores }, {}).exec();
+                    await Player.findOneAndUpdate({ _id: winner._id }, { $push: { history3: newMatch._id }, scores3: winner.scores }, {}).exec();
+                    await Player.findOneAndUpdate({ _id: looser._id }, { $push: { history3: newMatch._id }, scores3: looser.scores }, {}).exec();
                 }
 
                 res.json({
@@ -655,7 +655,7 @@ const deleteMatch = (req, res, next) => {
 
     try {
         const idMatch = req.body.idMatch;
-        Player.findOneAndUpdate({ $in: { history2: idMatch } }, { $pull: { history2: idMatch } }).exec();
+        Player.findOneAndUpdate({ $in: { history3: idMatch } }, { $pull: { history3: idMatch } }).exec();
 
         Match.deleteOne({ _id: idMatch }, function (err, doc) {
             if (err) return res.json({

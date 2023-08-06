@@ -12,6 +12,8 @@ const PlayerSchema = new Schema(
         year: { type: Number, required: true },
         score: { type: Number },
 
+
+
         scores: { type: Array },
         indivBonuses: { type: Array },
         category: { type: mongoose.Types.ObjectId, ref: 'Category' },
@@ -19,6 +21,8 @@ const PlayerSchema = new Schema(
             type: [{ type: mongoose.Types.ObjectId, ref: 'Match' }],
         },
         isValid: { type: Boolean, default: false },
+
+
 
         scores2: { type: Array },
         indivBonuses2: { type: Array },
@@ -28,11 +32,25 @@ const PlayerSchema = new Schema(
         },
         isValid2: { type: Boolean, default: false },
 
+
+
+        scores3: { type: Array },
+        indivBonuses3: { type: Array },
+        category3: { type: mongoose.Types.ObjectId, ref: 'Category' },
+        history3: {
+            type: [{ type: mongoose.Types.ObjectId, ref: 'Match' }],
+        },
+        isValid3: { type: Boolean, default: false },
+
+
+
         team: { type: mongoose.Types.ObjectId, ref: 'Team' },
         sex: { type: String, required: true },
         indGenre: { type: Number },
         nat: { type: String, required: true },
         UniqueNumber: { type: String },
+
+
 
         isBanned: { type: Boolean, default: false },
         changedTeam: { type: Date, default: () => Date.now() - 2 * 366 * 24 * 60 * 60 * 1000 },
