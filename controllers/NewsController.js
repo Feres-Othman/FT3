@@ -69,15 +69,24 @@ const addNews = async (req, res, next) => {
     const content = req.body.content;
     const date = req.body.date;
     const isPublic = req.body.isPublic;
+    const type = req.body.type;
 
     let news = new News({
         title: title,
         content: content,
         date: date,
         isPublic: isPublic,
-        images
+        images,
+        type: type
     })
-
+    console.log({
+        title: title,
+        content: content,
+        date: date,
+        isPublic: isPublic,
+        images,
+        type: type
+    })
     news.save();
 
     res.json({
@@ -130,8 +139,8 @@ const readNewss = async (req, res, next) => {
     try {
 
 
-
-        const newss = await News.find({})
+        console.log({ type: req.body.type })
+        const newss = await News.find({ type: req.body.type })
             .sort({ createdAt: -1 })
             .exec();
 
